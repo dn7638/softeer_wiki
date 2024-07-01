@@ -7,3 +7,8 @@
 venv
 .venv/
 venv/
+
+.vscode
+vscode
+.vscode/
+vscode/
