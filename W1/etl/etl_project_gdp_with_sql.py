@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 sqlite3 를 통해 sql 쿼리를 수행하여 조회한 내용을 반환하는 함수
 """
 def execute_sql(sql_text) -> list[any]:
-    with sqlite3.connect('etl.db') as conn:
+    with sqlite3.connect('World_Economies.db') as conn:
         cur = conn.cursor()
         cur.execute(sql_text)
         rows = cur.fetchall()
@@ -73,14 +73,14 @@ def open_json():
     with open(json_path, 'r') as file:
         data_list = json.load(file)
     
-    with sqlite3.connect('etl.db') as conn:
+    with sqlite3.connect('World_Economies.db') as conn:
         cur = conn.cursor()
         cur.execute(
                 '''
-                CREATE TABLE IF NOT EXISTS GDP (
+                CREATE TABLE IF NOT EXISTS Countries_by_GDP (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nation TEXT UNIQUE,
-                gdp INT
+                Country TEXT UNIQUE,
+                GDP_USD_billion INT
                 )
                 '''
         )
@@ -91,7 +91,7 @@ def open_json():
             try:
                 cur.execute(
                     '''
-                    INSERT INTO GDP (nation, gdp) VALUES (?, ?)
+                    INSERT INTO Countries_by_GDP (Country, GDP_USD_billion) VALUES (?, ?)
                     ''',
                     (item['0'], int(item['1'].replace(',','')))
                 )
@@ -116,7 +116,7 @@ def create_nation_conti_table():
                 nation, continent = line.split(',')
                 nation_conti_list.append((nation, continent))
     
-    with sqlite3.connect('etl.db') as conn:
+    with sqlite3.connect('World_Economies.db') as conn:
         cur = conn.cursor()
         cur.execute(
                 '''
@@ -156,13 +156,13 @@ def create_nation_conti_table():
                     """
                     INSERT INTO NATION_CONTI (nation, gdp, continent)
                     SELECT
-                        GDP.nation,
-                        GDP.gdp,
+                        Countries_by_GDP.Country,
+                        Countries_by_GDP.GDP_USD_billion,
                         CONTINENT.continent
                     FROM
-                        GDP
+                        Countries_by_GDP
                     LEFT JOIN
-                        CONTINENT ON GDP.nation = CONTINENT.nation;
+                        CONTINENT ON Countries_by_GDP.Country = CONTINENT.nation;
                     """
             )
         except:
@@ -178,8 +178,8 @@ def analyze():
     nation_gdp_list = execute_sql(
     """
     SELECT *
-    FROM GDP
-    WHERE gdp >= 100000
+    FROM Countries_by_GDP
+    WHERE GDP_USD_billion >= 100000
     """
     )
 
