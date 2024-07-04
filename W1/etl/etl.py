@@ -1,7 +1,7 @@
-import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-# import datetime as logger
+import requests
+import datetime as logger
 
 
 """
@@ -57,25 +57,77 @@ def open_json() -> pd.DataFrame:
     
     return df
 
+
 def analyze(df):
-    filtered_df = df[df[1].str.len()>=5][[0,1]]
+    df.rename(columns={0: 'Nation', 1: 'GDP'}, inplace=True)
+    # GDP가 100 이상인 행들을 추출하여 출력
+    filtered_df = df[df['GDP'].str.len()>=5][['Nation','GDP']]
     filtered_df = filtered_df[1:]
-    filtered_df.rename(columns={0: 'Nation', 1: 'GDP'}, inplace=True)
+    print('[Nations with GDP exceeding 100B USD]')
     print(filtered_df)
-    print(filtered_df.columns)
-    # for i in filtered_list:
-    #     print(i)
-##
-
     
-##
-## wiki -- scraping --> jason
-##
-gdp_list = scroll_wiki()
-list_to_json(gdp_list)
+    
+    nation_continent_dict, continent_GDP_dict = trans_region_data()
+    
+    df_sorted = df.sort_values(by='GDP')
+    for index, row in df_sorted.iterrows():
+        nation, gdp = row['Nation'], row['GDP']
+        if nation_continent_dict.get(nation):
+            continent_GDP_dict[nation_continent_dict[nation]].append(gdp)
+    
+    print('Top 5 GDP averages in each region')
+    for key, value in continent_GDP_dict.items():
+        value_int = [int(num.replace(',','')) for num in value]
+        avg = 0
+        if len(value_int) > 4:
+            avg = sum(value_int[0:5])//5
+        else:
+            avg = sum(value_int)//len(value_int)
+        avg = format(avg, ",")
+        print(f'{key:15} : {avg}')
+        
+        
+def trans_region_data() -> tuple[dict, dict]:
+    # 텍스트 파일 경로
+    txt_file = 'region.txt'
 
-##
-## json -- open, dataframe -> print
-##
+    # 빈 dictionary 생성
+    nation_continent_dict = dict()
+    continent_set = set()
+
+    # 텍스트 파일 읽기
+    with open(txt_file, mode='r', encoding='utf-8') as file:
+        for line in file:
+            line = line.strip()  # 줄 바꿈 문자 제거
+            if line:
+                nation, continent = line.split(',')
+                nation_continent_dict[nation] = continent
+                continent_set.add(continent)
+                
+    continent_GDP_dict = {item : [] for item in continent_set}
+
+    return nation_continent_dict, continent_GDP_dict
+    
+    
+    
+################################
+## wiki -- scraping --> jason ##
+################################
+
+#E : start extract
+gdp_list = scroll_wiki()
+#E : end extract
+
+#T : start transform (list -> json)
+list_to_json(gdp_list)
+#T : end transform (list -> json)
+
+######################################
+## json -- open, dataframe -> print ##
+######################################
+
+#L : start load
 nation_gdp_df = open_json()
+#L : end load
+
 analyze(nation_gdp_df)
