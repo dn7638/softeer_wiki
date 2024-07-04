@@ -67,9 +67,11 @@ def analyze(df):
     # GDP가 100 이상인 행들을 추출하여 출력
     filtered_df = df[df['GDP'].str.len()>=7][['Nation','GDP']]
     filtered_df = filtered_df[1:]
-    print('\n[Nations with GDP exceeding 100B USD (Unit:Million $)]')
+    print('\n[Nations with GDP exceeding 100B USD (Unit:Billion $)]')
     for idx, row in filtered_df.iterrows():
-        print(f'{idx:<4}{row['Nation']:<25}{row['GDP']:<12}')
+        float_gdp = float(row['GDP'].replace(',',''))
+        float_gdp /= 1000
+        print(f'{idx:<4}{row['Nation']:<25}{float_gdp:<12.2f}')
         
     nation_continent_dict, continent_GDP_dict = trans_region_data()
     df_sorted = df.sort_values(by='GDP')
@@ -78,16 +80,17 @@ def analyze(df):
         if nation_continent_dict.get(nation):
             continent_GDP_dict[nation_continent_dict[nation]].append(gdp)
     
-    print('\n[Top 5 GDP averages in each region (Unit:Million $)]')
+    print('\n[Top 5 GDP averages in each region (Unit:Billion $)]')
     for key, value in continent_GDP_dict.items():
         value_int = [int(num.replace(',','')) for num in value]
+        value_int.sort()
         avg = 0
         if len(value_int) > 4:
-            avg = sum(value_int[0:5])//5
+            avg = sum(value_int[-5:])//5
         else:
             avg = sum(value_int)//len(value_int)
-        avg = format(avg, ",")
-        print(f'{key:15} : {avg}')
+        avg = float(avg)/1000
+        print(f'{key:15} : {avg:.2f}')
         
 
 """
