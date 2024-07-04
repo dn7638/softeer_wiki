@@ -48,12 +48,12 @@ def list_to_json(_list) -> None:
     df = pd.DataFrame(_list)
     json_data = df.to_json(orient='records')
     
-    with open('nation_gdp.json', 'w') as f:
+    with open('Countries_by_GDP.json', 'w') as f:
         f.write(json_data)
     
 
 def open_json() -> pd.DataFrame:
-    json_path = './nation_gdp.json'
+    json_path = './Countries_by_GDP.json'
     df = pd.read_json(json_path)
     
     return df

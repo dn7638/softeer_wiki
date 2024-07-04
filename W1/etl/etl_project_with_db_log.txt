@@ -82,3 +82,9 @@
 2024-July-04-17-20-47,T : end transform (list -> json)
 2024-July-04-17-20-47,L : start load
 2024-July-04-17-20-47,L : end load
+2024-July-04-17-39-57,E : start extract
+2024-July-04-17-39-58,E : end extract
+2024-July-04-17-39-58,T : start transform (list -> json)
+2024-July-04-17-39-58,T : end transform (list -> json)
+2024-July-04-17-39-58,L : start load
+2024-July-04-17-39-58,L : end load

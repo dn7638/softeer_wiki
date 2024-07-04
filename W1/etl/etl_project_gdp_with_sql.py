@@ -5,10 +5,11 @@ import sqlite3
 import json
 from bs4 import BeautifulSoup
 
+
 """
-ㄴetl.db
+sqlite3 를 통해 sql 쿼리를 수행하여 조회한 내용을 반환하는 함수
 """
-def execute_sql(sql_text):
+def execute_sql(sql_text) -> list[any]:
     with sqlite3.connect('etl.db') as conn:
         cur = conn.cursor()
         cur.execute(sql_text)
@@ -60,12 +61,15 @@ def list_to_json(_list) -> None:
     df = pd.DataFrame(_list)
     json_data = df.to_json(orient='records')
     
-    with open('nation_gdp.json', 'w') as f:
+    with open('Countries_by_GDP.json', 'w') as f:
         f.write(json_data)
     
 
+"""
+json 파일을 열어 DB에 테이블을 생성하는 함수
+"""
 def open_json():
-    json_path = './nation_gdp.json'
+    json_path = './Countries_by_GDP.json'
     with open(json_path, 'r') as file:
         data_list = json.load(file)
     
@@ -97,6 +101,11 @@ def open_json():
         conn.commit()
 
 
+"""
+국가,대륙 정보를 가지고 있는 region.txt 파일을 얼어
+국가,대륙 정보를 가지고 있는 테이블 CONTINENT를 생성한 후
+GDP, CONTINENT 테이블을 LEFT JOIN한 테이블 GDP_CONTI을 생성하는 함수
+"""
 def create_nation_conti_table():
     txt_file = './region.txt'
     nation_conti_list = []
@@ -106,7 +115,6 @@ def create_nation_conti_table():
             if line:
                 nation, continent = line.split(',')
                 nation_conti_list.append((nation, continent))
-                
     
     with sqlite3.connect('etl.db') as conn:
         cur = conn.cursor()
@@ -131,6 +139,7 @@ def create_nation_conti_table():
             except sqlite3.IntegrityError as e:
                 print(e)
                 break
+            
         cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS NATION_CONTI  (
@@ -140,6 +149,7 @@ def create_nation_conti_table():
                 );
                 """
         )
+        
         conn.commit()
         try:
             cur.execute(
@@ -161,8 +171,6 @@ def create_nation_conti_table():
         conn.commit()
         
         
-
-
 """
 데이터프레임으로서 load한 내용을 요구사항에 맞게 정리하여 출력하는 함수
 """
@@ -254,7 +262,7 @@ def get_cur_time():
 현재 시각과 입력받은 메시지를 로그 파일에 기록하는 함수
 """
 def log(process : str) -> None:
-    filename = 'etl_project_with_db_log.txt'
+    filename = 'etl_project_log.txt'
     cur_time = get_cur_time()
     log_string = ','.join([cur_time, process])    
     
