@@ -65,21 +65,20 @@ def open_json() -> pd.DataFrame:
 def analyze(df):
     df.rename(columns={0: 'Nation', 1: 'GDP'}, inplace=True)
     # GDP가 100 이상인 행들을 추출하여 출력
-    filtered_df = df[df['GDP'].str.len()>=5][['Nation','GDP']]
+    filtered_df = df[df['GDP'].str.len()>=7][['Nation','GDP']]
     filtered_df = filtered_df[1:]
-    print('[Nations with GDP exceeding 100B USD]')
-    print(filtered_df)
-    
-    
+    print('\n[Nations with GDP exceeding 100B USD (Unit:Million $)]')
+    for idx, row in filtered_df.iterrows():
+        print(f'{idx:<4}{row['Nation']:<25}{row['GDP']:<12}')
+        
     nation_continent_dict, continent_GDP_dict = trans_region_data()
-    
     df_sorted = df.sort_values(by='GDP')
     for index, row in df_sorted.iterrows():
         nation, gdp = row['Nation'], row['GDP']
         if nation_continent_dict.get(nation):
             continent_GDP_dict[nation_continent_dict[nation]].append(gdp)
     
-    print('Top 5 GDP averages in each region')
+    print('\n[Top 5 GDP averages in each region (Unit:Million $)]')
     for key, value in continent_GDP_dict.items():
         value_int = [int(num.replace(',','')) for num in value]
         avg = 0
