@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import pandas as pd
 import requests
-import datetime as logger
+import datetime
 
 
 """
@@ -40,6 +40,7 @@ def scroll_wiki() -> list:
     
     return table_data
 
+
 """
 list 자료를 입력받아 json 파일로 내보내는 함수
 """
@@ -58,6 +59,9 @@ def open_json() -> pd.DataFrame:
     return df
 
 
+"""
+데이터프레임으로서 load한 내용을 요구사항에 맞게 정리하여 출력하는 함수
+"""
 def analyze(df):
     df.rename(columns={0: 'Nation', 1: 'GDP'}, inplace=True)
     # GDP가 100 이상인 행들을 추출하여 출력
@@ -86,7 +90,12 @@ def analyze(df):
         avg = format(avg, ",")
         print(f'{key:15} : {avg}')
         
-        
+
+"""
+국가,대륙 정보가 담긴 파일을 이용하여 딕셔너리 자료를 구성
+중복되지 않는 대륙 정보를 사용하여 딕셔너리 자료를 구성
+{키 = 대륙 : 값 = GDP 값 리스트} 
+"""
 def trans_region_data() -> tuple[dict, dict]:
     # 텍스트 파일 경로
     txt_file = 'region.txt'
@@ -108,26 +117,57 @@ def trans_region_data() -> tuple[dict, dict]:
 
     return nation_continent_dict, continent_GDP_dict
     
+
+"""
+datatime library를 통해 현재 시각을 적절한 포맷의 문자열로 반환하는 함수
+"""    
+def get_cur_time():
+    # 현재 시각을 얻기
+    now = datetime.datetime.now()
+    # 원하는 포맷으로 변환
+    formatted_now = now.strftime('%Y-%B-%d-%H-%M-%S')
+    return formatted_now
+
+"""
+현재 시각과 입력받은 메시지를 로그 파일에 기록하는 함수
+"""
+def log(process : str) -> None:
+    filename = 'etl_project_log.txt'
+    cur_time = get_cur_time()
+    log_string = ','.join([cur_time, process])    
     
+    with open(filename, 'a+') as file:
+        # 파일에 쓸 콘텐츠 추가
+        file.write(log_string + '\n')
     
+
 ################################
 ## wiki -- scraping --> jason ##
 ################################
 
 #E : start extract
+log('E : start extract')
 gdp_list = scroll_wiki()
+
 #E : end extract
+log('E : end extract')
 
 #T : start transform (list -> json)
+log('T : start transform (list -> json)')
 list_to_json(gdp_list)
+
 #T : end transform (list -> json)
+log('T : end transform (list -> json)')
 
 ######################################
 ## json -- open, dataframe -> print ##
 ######################################
 
 #L : start load
+log('L : start load')
 nation_gdp_df = open_json()
+
 #L : end load
+log('L : end load')
 
 analyze(nation_gdp_df)
