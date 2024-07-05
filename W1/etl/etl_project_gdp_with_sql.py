@@ -22,9 +22,11 @@ def execute_sql(sql_text) -> list[any]:
 [[국가, GDP], [국가, GDP], ...] 형태
 첫번째 행은 [모든 국가, GDP 총합]
 """
-def scroll_wiki() -> list:
+def scroll_wiki() -> pd.DataFrame:
     # 데이터 저장을 위한 리스트 초기화
-    table_data = [] 
+    table_data = []
+    df = pd.DataFrame() 
+    
     url = "https://en.wikipedia.org/wiki/List_of_countries_by_GDP_%28nominal%29"
     response = requests.get(url)
     
@@ -47,18 +49,19 @@ def scroll_wiki() -> list:
                 cell_values[1] = '-1'
             table_data.append(cell_values)
             
+        df = pd.DataFrame(table_data)
     # 요청 실패시 메시지 출력
     else:
         print("Failed to retrieve the web page")
     
-    return table_data
+    return df
 
 
 """
 list 자료를 입력받아 json 파일로 내보내는 함수
 """
-def list_to_json(_list) -> None:
-    df = pd.DataFrame(_list)
+def df_to_json(_df : pd.DataFrame) -> None:
+    df = _df
     json_data = df.to_json(orient='records')
     
     with open('Countries_by_GDP.json', 'w') as f:
@@ -68,7 +71,7 @@ def list_to_json(_list) -> None:
 """
 json 파일을 열어 DB에 테이블을 생성하는 함수
 """
-def open_json():
+def open_json() -> None:
     json_path = './Countries_by_GDP.json'
     with open(json_path, 'r') as file:
         data_list = json.load(file)
@@ -99,58 +102,7 @@ def open_json():
                 print(e)
                 break
         conn.commit()
-
-
-"""
-국가,대륙 정보를 가지고 있는 region.txt 파일을 얼어
-국가,대륙 정보를 가지고 있는 테이블 CONTINENT를 생성한 후
-GDP, CONTINENT 테이블을 LEFT JOIN한 테이블 GDP_CONTI을 생성하는 함수
-"""
-def create_nation_conti_table():
-    txt_file = './region.txt'
-    nation_conti_list = []
-    with open(txt_file, mode='r', encoding='utf-8') as file:
-        for line in file:
-            line = line.strip()  # 줄 바꿈 문자 제거
-            if line:
-                nation, continent = line.split(',')
-                nation_conti_list.append((nation, continent))
-    
-    with sqlite3.connect('World_Economies.db') as conn:
-        cur = conn.cursor()
-        cur.execute(
-                '''
-                CREATE TABLE IF NOT EXISTS CONTINENT (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nation TEXT UNIQUE,
-                continent TEXT
-                )
-                '''
-        )
-        
-        for item in nation_conti_list:
-            try:
-                cur.execute(
-                    '''
-                    INSERT INTO CONTINENT (nation, continent) VALUES (?, ?)
-                    ''',
-                    (item[0], item[1])
-                )
-            except sqlite3.IntegrityError as e:
-                print(e)
-                break
-            
-        cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS NATION_CONTI  (
-                nation TEXT PRIMARY KEY,
-                gdp INTEGER,
-                continent TEXT
-                );
-                """
-        )
-        
-        conn.commit()
+                
         try:
             cur.execute(
                     """
@@ -172,9 +124,9 @@ def create_nation_conti_table():
         
         
 """
-데이터프레임으로서 load한 내용을 요구사항에 맞게 정리하여 출력하는 함수
+데이터프레임으로서 load한 내용을 요구사항에 맞는 포맷으로 출력하는 함수
 """
-def analyze():
+def analyze() -> None:
     nation_gdp_list = execute_sql(
     """
     SELECT *
@@ -208,7 +160,6 @@ def analyze():
     
     print('\n[Nations with GDP exceeding 100B USD (Unit:Billion $)]')
     for item in nation_gdp_list:
-        
         float_gdp = item[2] / 1000
         print(f'{item[0]:<4}{item[1]:<25}{float_gdp:<12.2f}')
         
@@ -250,7 +201,7 @@ def trans_region_data() -> tuple[dict, dict]:
 """
 datatime library를 통해 현재 시각을 적절한 포맷의 문자열로 반환하는 함수
 """    
-def get_cur_time():
+def get_cur_time() -> str:
     # 현재 시각을 얻기
     now = datetime.datetime.now()
     # 원하는 포맷으로 변환
@@ -271,23 +222,21 @@ def log(process : str) -> None:
         file.write(log_string + '\n')
     
 
-################################
-## wiki -- scraping --> jason ##
-################################
+###############################
+## wiki -- scraping --> dataframe ##
+###############################
 
 #E : start extract
 log('E : start extract')
-gdp_list = scroll_wiki()
-
-#E : end extract
+gdp_df = scroll_wiki()
 log('E : end extract')
+#E : end extract
 
-#T : start transform (list -> json)
-log('T : start transform (list -> json)')
-list_to_json(gdp_list)
-
-#T : end transform (list -> json)
-log('T : end transform (list -> json)')
+#T : start transform (dataframe -> json)
+log('T : start transform (dataframe -> json)')
+df_to_json(gdp_df)
+log('T : end transform (dataframe -> json)')
+#T : end transform (dataframe -> json)
 
 ####################################
 ## json -- open, put data into db ##
@@ -295,13 +244,13 @@ log('T : end transform (list -> json)')
  
 #L : start load
 log('L : start load')
-create_nation_conti_table()
 open_json()
-
-# #L : end load
 log('L : end load')
+# #L : end load
 
 #######################################################
 ## db -- analyze by using sql query and print result ##
 #######################################################
 analyze()
+
+

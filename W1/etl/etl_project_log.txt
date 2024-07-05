@@ -196,3 +196,27 @@
 2024-July-04-17-51-03,T : end transform (list -> json)
 2024-July-04-17-51-03,L : start load
 2024-July-04-17-51-03,L : end load
+2024-July-06-08-19-37,E : start extract
+2024-July-06-08-19-38,E : end extract
+2024-July-06-08-19-38,T : start transform (list -> json)
+2024-July-06-08-19-38,T : end transform (list -> json)
+2024-July-06-08-19-38,L : start load
+2024-July-06-08-19-38,L : end load
+2024-July-06-08-38-59,E : start extract
+2024-July-06-08-39-00,E : end extract
+2024-July-06-08-39-00,T : start transform (list -> json)
+2024-July-06-08-39-00,T : end transform (list -> json)
+2024-July-06-08-39-00,L : start load
+2024-July-06-08-39-00,L : end load
+2024-July-06-08-40-05,E : start extract
+2024-July-06-08-40-06,E : end extract
+2024-July-06-08-40-06,T : start transform (list -> json)
+2024-July-06-08-40-06,T : end transform (list -> json)
+2024-July-06-08-40-06,L : start load
+2024-July-06-08-40-06,L : end load
+2024-July-06-08-47-30,E : start extract
+2024-July-06-08-47-32,E : end extract
+2024-July-06-08-47-32,T : start transform (dataframe -> json)
+2024-July-06-08-47-32,T : end transform (dataframe -> json)
+2024-July-06-08-47-32,L : start load
+2024-July-06-08-47-32,L : end load
