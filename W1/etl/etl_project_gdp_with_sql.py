@@ -58,7 +58,7 @@ def scroll_wiki() -> pd.DataFrame:
 
 
 """
-TODO
+데이터프레임의 행을 수정할 함수로, apply를 위해 구현됨
 """
 def string_to_float(value) -> round:
     value = value.replace(',','')
