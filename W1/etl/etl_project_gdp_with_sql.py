@@ -58,10 +58,20 @@ def scroll_wiki() -> pd.DataFrame:
 
 
 """
-list 자료를 입력받아 json 파일로 내보내는 함수
+TODO
+"""
+def string_to_float(value) -> round:
+    value = value.replace(',','')
+    
+    return round(float(value), 2)
+
+
+"""
+DataFrame 자료를 입력받아 json 파일로 내보내는 함수
 """
 def df_to_json(_df : pd.DataFrame) -> None:
     df = _df
+    df[1] = df[1].apply(string_to_float)
     json_data = df.to_json(orient='records')
     
     with open('Countries_by_GDP.json', 'w') as f:
@@ -83,7 +93,7 @@ def open_json() -> None:
                 CREATE TABLE IF NOT EXISTS Countries_by_GDP (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 Country TEXT UNIQUE,
-                GDP_USD_billion INT
+                GDP_USD_billion FLOAT
                 )
                 '''
         )
@@ -96,7 +106,7 @@ def open_json() -> None:
                     '''
                     INSERT INTO Countries_by_GDP (Country, GDP_USD_billion) VALUES (?, ?)
                     ''',
-                    (item['0'], int(item['1'].replace(',','')))
+                    (item['0'], item['1'])
                 )
             except sqlite3.IntegrityError as e:
                 print(e)
@@ -230,7 +240,7 @@ def log(process : str) -> None:
 log('E : start extract')
 gdp_df = scroll_wiki()
 log('E : end extract')
-#E : end extract
+#E : end extract 
 
 #T : start transform (dataframe -> json)
 log('T : start transform (dataframe -> json)')
